@@ -1,0 +1,810 @@
+text
+
+--[[
+╔══════════════════════════════════════════════════════════════════════════╗
+║         GHOST HUB TITAN — DEFINITIVE EDITION (v33.0)                    ║
+║         SCRIPT 3 / 3  —  UI PAGES + BOOTSTRAP                          ║
+║         Run AFTER S1 and S2.                                             ║
+╚══════════════════════════════════════════════════════════════════════════╝
+]]
+
+-- ── Pull everything from _G ───────────────────────────────────────────
+local Svc      = _G.GH_Svc
+local UIS      = _G.GH_UIS
+local Run      = _G.GH_Run
+local Players  = _G.GH_Players
+local Tween    = _G.GH_Tween
+local Lighting = _G.GH_Lighting
+local Debris   = _G.GH_Debris
+local HttpSvc  = _G.GH_HttpSvc
+local LP       = _G.GH_LP
+local Camera   = _G.GH_Camera
+
+local Cfg             = _G.GH_Cfg
+local State           = _G.GH_State
+local Anims           = _G.GH_Anims
+local FX              = _G.GH_FX
+local ScreenGui       = _G.GH_ScreenGui
+local CFG_SAVE_FILE   = _G.GH_CFG_SAVE_FILE
+
+-- UI factories
+local NewPage    = _G.GH_NewPage
+local ShowPage   = _G.GH_ShowPage
+local NavBtn     = _G.GH_NavBtn
+local Header     = _G.GH_Header
+local Btn        = _G.GH_Btn
+local Slider     = _G.GH_Slider
+local Toggle     = _G.GH_Toggle
+local TextInput  = _G.GH_TextInput
+local NextOrder  = _G.GH_NextOrder
+
+-- Systems
+local ApplyAnims             = _G.GH_ApplyAnims
+local SetRagdoll             = _G.GH_SetRagdoll
+local SetRage                = _G.GH_SetRage
+local AddRage                = _G.GH_AddRage
+local DoSonarPing            = _G.GH_DoSonarPing
+local DoPingEffect           = _G.GH_DoPingEffect
+local Knockout               = _G.GH_Knockout
+local WakeUp                 = _G.GH_WakeUp
+local ApplyInjury            = _G.GH_ApplyInjury
+local ClearInjuries          = _G.GH_ClearInjuries
+local MakeExplosion          = _G.GH_MakeExplosion
+local SetupPenetrationDetection = _G.GH_SetupPenetrationDetection
+local ClearProximityFX       = _G.GH_ClearProximityFX
+local SpawnNPC               = _G.GH_SpawnNPC
+local NPCList                = _G.GH_NPCList
+local SpawnedObjects         = _G.GH_SpawnedObjects
+local GetHumDesc             = _G.GH_GetHumDesc
+local ApplyDesc              = _G.GH_ApplyDesc
+local ApplyScale             = _G.GH_ApplyScale
+local CatalogSearch          = _G.GH_CatalogSearch
+local AvatarState            = _G.GH_AvatarState
+local Injuries               = _G.GH_Injuries
+local ClearFocus             = _G.GH_ClearFocus
+local GetAmbientSound        = _G.GH_GetAmbientSound
+local GetOrCreateAmbientEffect = _G.GH_GetOrCreateAmbientEffect
+local AmbientEffects         = _G.GH_AmbientEffects
+local xenoSave               = _G.GH_xenoSave
+local GetScale               = _G.GH_GetScale
+local GetAnimator            = _G.GH_GetAnimator
+local PlayKeybindAnim        = _G.GH_PlayKeybindAnim
+local StopGhostCam           = _G.GH_StopGhostCam
+local DeathOverlay           = _G.GH_DeathOverlay
+local BloodVignette          = _G.GH_BloodVignette
+local UnconsOverlay          = _G.GH_UnconsOverlay
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- [XXIV] UI PAGES
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+-- ── FRIEND TREE OVERLAY ───────────────────────────────────────────────
+local TreeOverlay=Instance.new("Frame",ScreenGui)
+TreeOverlay.Size=UDim2.new(1,0,1,0); TreeOverlay.BackgroundColor3=Color3.fromRGB(12,12,16)
+TreeOverlay.BackgroundTransparency=0.05; TreeOverlay.Visible=false; TreeOverlay.ZIndex=500
+
+local TreeCloseBtn=Instance.new("TextButton",TreeOverlay)
+TreeCloseBtn.Size=UDim2.new(0,90,0,30); TreeCloseBtn.Position=UDim2.new(1,-100,0,10)
+TreeCloseBtn.Text="✕  CLOSE"; TreeCloseBtn.BackgroundColor3=Color3.fromRGB(80,20,20)
+TreeCloseBtn.TextColor3=Color3.new(1,1,1); TreeCloseBtn.Font=Enum.Font.GothamBold
+TreeCloseBtn.TextSize=12; TreeCloseBtn.BorderSizePixel=0; TreeCloseBtn.ZIndex=501
+Instance.new("UICorner",TreeCloseBtn).CornerRadius=UDim.new(0,5)
+TreeCloseBtn.MouseButton1Click:Connect(function() TreeOverlay.Visible=false; UIS.MouseBehavior=Enum.MouseBehavior.Default end)
+
+local TreeTitle=Instance.new("TextLabel",TreeOverlay)
+TreeTitle.Size=UDim2.new(0,400,0,30); TreeTitle.Position=UDim2.new(0,16,0,10)
+TreeTitle.BackgroundTransparency=1; TreeTitle.Text="FRIEND TREE"
+TreeTitle.TextColor3=Color3.fromRGB(110,150,255); TreeTitle.Font=Enum.Font.GothamBold
+TreeTitle.TextSize=16; TreeTitle.TextXAlignment=Enum.TextXAlignment.Left; TreeTitle.ZIndex=501
+
+local TreeViewport=Instance.new("Frame",TreeOverlay)
+TreeViewport.Size=UDim2.new(1,0,1,-50); TreeViewport.Position=UDim2.new(0,0,0,50)
+TreeViewport.BackgroundTransparency=1; TreeViewport.ClipsDescendants=true; TreeViewport.ZIndex=500
+
+local TreeGrid=Instance.new("Frame",TreeViewport)
+TreeGrid.Size=UDim2.new(1,0,1,0); TreeGrid.BackgroundColor3=Color3.fromRGB(16,16,22)
+TreeGrid.BorderSizePixel=0; TreeGrid.ZIndex=500
+for i=0,30 do
+	local hLine=Instance.new("Frame",TreeGrid); hLine.Size=UDim2.new(1,0,0,1); hLine.Position=UDim2.new(0,0,0,i*50)
+	hLine.BackgroundColor3=Color3.fromRGB(28,28,38); hLine.BorderSizePixel=0; hLine.ZIndex=500
+	local vLine=Instance.new("Frame",TreeGrid); vLine.Size=UDim2.new(0,1,1,0); vLine.Position=UDim2.new(0,i*50,0,0)
+	vLine.BackgroundColor3=Color3.fromRGB(28,28,38); vLine.BorderSizePixel=0; vLine.ZIndex=500
+end
+
+local TreeCanvas=Instance.new("Frame",TreeViewport)
+TreeCanvas.Size=UDim2.new(0,4000,0,4000); TreeCanvas.Position=UDim2.new(0,-1800,0,-1800)
+TreeCanvas.BackgroundTransparency=1; TreeCanvas.ZIndex=501
+
+local treeDragging,treeDragStart,treeCanvasStart=false,nil,nil
+TreeViewport.InputBegan:Connect(function(inp)
+	if inp.UserInputType==Enum.UserInputType.MouseButton2 then
+		treeDragging=true; treeDragStart=Vector2.new(inp.Position.X,inp.Position.Y); treeCanvasStart=TreeCanvas.Position
+	end
+end)
+UIS.InputChanged:Connect(function(inp)
+	if treeDragging and inp.UserInputType==Enum.UserInputType.MouseMovement then
+		local delta=Vector2.new(inp.Position.X,inp.Position.Y)-treeDragStart
+		TreeCanvas.Position=UDim2.new(treeCanvasStart.X.Scale,treeCanvasStart.X.Offset+delta.X,treeCanvasStart.Y.Scale,treeCanvasStart.Y.Offset+delta.Y)
+	end
+end)
+UIS.InputEnded:Connect(function(inp) if inp.UserInputType==Enum.UserInputType.MouseButton2 then treeDragging=false end end)
+
+-- Node popup
+local NodePopup=Instance.new("Frame",TreeOverlay)
+NodePopup.Size=UDim2.new(0,200,0,160); NodePopup.BackgroundColor3=Color3.fromRGB(18,18,28)
+NodePopup.BorderSizePixel=0; NodePopup.Visible=false; NodePopup.ZIndex=600
+Instance.new("UICorner",NodePopup).CornerRadius=UDim.new(0,8)
+do local s=Instance.new("UIStroke",NodePopup); s.Color=Color3.fromRGB(60,80,200); s.Thickness=1.5 end
+local PopupName=Instance.new("TextLabel",NodePopup)
+PopupName.Size=UDim2.new(1,-10,0,28); PopupName.Position=UDim2.new(0,8,0,6); PopupName.BackgroundTransparency=1
+PopupName.TextColor3=Color3.fromRGB(200,210,255); PopupName.Font=Enum.Font.GothamBold; PopupName.TextSize=13
+PopupName.TextXAlignment=Enum.TextXAlignment.Left; PopupName.ZIndex=601
+local PopupId=Instance.new("TextLabel",NodePopup)
+PopupId.Size=UDim2.new(1,-10,0,16); PopupId.Position=UDim2.new(0,8,0,30); PopupId.BackgroundTransparency=1
+PopupId.TextColor3=Color3.fromRGB(90,90,110); PopupId.Font=Enum.Font.GothamMedium; PopupId.TextSize=10
+PopupId.TextXAlignment=Enum.TextXAlignment.Left; PopupId.ZIndex=601
+
+local popupActionDefs={{label="Expand Friends",key="expand"},{label="Spawn as NPC",key="spawn"},{label="Wear their Look",key="wear"},{label="Copy User ID",key="copy"}}
+local popupBtns={}
+for i,action in ipairs(popupActionDefs) do
+	local pb=Instance.new("TextButton",NodePopup)
+	pb.Size=UDim2.new(1,-16,0,24); pb.Position=UDim2.new(0,8,0,48+(i-1)*26)
+	pb.BackgroundColor3=Color3.fromRGB(28,28,40); pb.TextColor3=Color3.fromRGB(190,200,255)
+	pb.Font=Enum.Font.GothamMedium; pb.TextSize=11; pb.Text=action.label; pb.BorderSizePixel=0; pb.ZIndex=602
+	Instance.new("UICorner",pb).CornerRadius=UDim.new(0,4)
+	pb.MouseEnter:Connect(function() pb.BackgroundColor3=Color3.fromRGB(40,50,90) end)
+	pb.MouseLeave:Connect(function() pb.BackgroundColor3=Color3.fromRGB(28,28,40) end)
+	popupBtns[action.key]=pb
+end
+local activePopupUserId,activePopupNode=nil,nil
+local function ClosePopup() NodePopup.Visible=false; activePopupUserId=nil; activePopupNode=nil end
+local function OpenPopup(userId,displayName,screenX,screenY,nodeRef)
+	activePopupUserId=userId; activePopupNode=nodeRef; PopupName.Text=displayName; PopupId.Text="ID: "..tostring(userId)
+	local vp=Camera.ViewportSize
+	NodePopup.Position=UDim2.new(0,math.clamp(screenX,0,vp.X-210),0,math.clamp(screenY,50,vp.Y-170))
+	NodePopup.Visible=true
+end
+TreeViewport.InputBegan:Connect(function(inp) if inp.UserInputType==Enum.UserInputType.MouseButton1 then ClosePopup() end end)
+
+popupBtns["spawn"].MouseButton1Click:Connect(function()
+	if not activePopupUserId then return end
+	local uid=activePopupUserId; ClosePopup()
+	Cfg.NPCUseDefaultRig=true; Cfg.NPCDefaultRigUserId=uid
+	SpawnNPC("Neutral",16); Cfg.NPCUseDefaultRig=false
+end)
+popupBtns["wear"].MouseButton1Click:Connect(function()
+	if not activePopupUserId then return end
+	local uid=activePopupUserId; ClosePopup()
+	task.spawn(function() local ok,desc=pcall(function() return Players:GetHumanoidDescriptionFromUserId(uid) end); if ok and desc then ApplyDesc(desc) end end)
+end)
+popupBtns["copy"].MouseButton1Click:Connect(function()
+	if not activePopupUserId then return end
+	print("[GH Friend Tree] User ID:",activePopupUserId)
+	popupBtns["copy"].Text="Copied! (see output)"; task.delay(2,function() popupBtns["copy"].Text="Copy User ID" end); ClosePopup()
+end)
+
+-- Tree builder
+local treeNodes={}
+local function ClearTree() for _,n in ipairs(treeNodes) do pcall(function() n:Destroy() end) end; treeNodes={} end
+local function DrawLine(x0,y0,x1,y1)
+	local dx=x1-x0; local dy=y1-y0; local length=math.sqrt(dx*dx+dy*dy); local angle=math.deg(math.atan2(dy,dx))
+	local line=Instance.new("Frame",TreeCanvas)
+	line.Size=UDim2.new(0,length,0,2); line.Position=UDim2.new(0,(x0+x1)/2-length/2,0,(y0+y1)/2-1)
+	line.Rotation=angle; line.BackgroundColor3=Color3.fromRGB(60,70,120); line.BorderSizePixel=0; line.ZIndex=502
+	table.insert(treeNodes,line); return line
+end
+local NODE_SIZE=70; local DEPTH_GAP=160; local SIBLING_GAP=100
+local function MakeNode(userId,displayName,cx,cy,depth)
+	local nodeFrame=Instance.new("Frame",TreeCanvas)
+	nodeFrame.Size=UDim2.new(0,NODE_SIZE,0,NODE_SIZE); nodeFrame.Position=UDim2.new(0,cx-NODE_SIZE/2,0,cy-NODE_SIZE/2)
+	nodeFrame.BackgroundColor3=Color3.fromRGB(20,20,32); nodeFrame.BorderSizePixel=0; nodeFrame.ZIndex=503
+	Instance.new("UICorner",nodeFrame).CornerRadius=UDim.new(1,0)
+	do local s=Instance.new("UIStroke",nodeFrame)
+		s.Color=depth==0 and Color3.fromRGB(110,150,255) or depth==1 and Color3.fromRGB(80,120,200) or Color3.fromRGB(50,70,130)
+		s.Thickness=depth==0 and 2.5 or 1.5
+	end
+	local img=Instance.new("ImageLabel",nodeFrame); img.Size=UDim2.new(1,-8,1,-8); img.Position=UDim2.new(0,4,0,4)
+	img.BackgroundTransparency=1; img.ZIndex=504; Instance.new("UICorner",img).CornerRadius=UDim.new(1,0)
+	task.spawn(function()
+		local ok,url=pcall(function() return Players:GetUserThumbnailAsync(userId,Enum.ThumbnailType.HeadShot,Enum.ThumbnailSize.Size100x100) end)
+		if ok then img.Image=url end
+	end)
+	local lbl=Instance.new("TextLabel",TreeCanvas); lbl.Size=UDim2.new(0,120,0,18)
+	lbl.Position=UDim2.new(0,cx-60,0,cy+NODE_SIZE/2+4); lbl.BackgroundTransparency=1; lbl.Text=displayName
+	lbl.TextColor3=Color3.fromRGB(180,190,220); lbl.Font=Enum.Font.GothamMedium; lbl.TextSize=10; lbl.ZIndex=503
+	table.insert(treeNodes,lbl)
+	local clickBtn=Instance.new("TextButton",nodeFrame); clickBtn.Size=UDim2.new(1,0,1,0)
+	clickBtn.BackgroundTransparency=1; clickBtn.Text=""; clickBtn.ZIndex=505
+	clickBtn.MouseButton1Click:Connect(function()
+		local absPos=nodeFrame.AbsolutePosition; OpenPopup(userId,displayName,absPos.X+NODE_SIZE+8,absPos.Y,nodeFrame)
+	end)
+	table.insert(treeNodes,nodeFrame); return nodeFrame
+end
+
+local function BuildFriendTree(rootUserId)
+	ClearTree(); TreeTitle.Text="FRIEND TREE  —  loading..."
+	task.spawn(function()
+		local rootName="Player"
+		pcall(function() rootName=Players:GetNameFromUserIdAsync(rootUserId) end)
+		TreeTitle.Text="FRIEND TREE  —  "..rootName
+		local centerX=2000; local centerY=300
+		MakeNode(rootUserId,rootName,centerX,centerY,0)
+		local ok,pages=pcall(function() return Players:GetFriendsAsync(rootUserId) end)
+		if not ok then TreeTitle.Text="FRIEND TREE  —  failed to load friends"; return end
+		local friends={}
+		while true do
+			local page=pages:GetCurrentPage()
+			for _,info in ipairs(page) do table.insert(friends,info); if #friends>=20 then break end end
+			if pages.IsFinished or #friends>=20 then break end
+			pages:AdvanceToNextPageAsync()
+		end
+		local count=#friends
+		for i,friendInfo in ipairs(friends) do
+			local fx=(count==1) and centerX or (centerX-(count-1)*SIBLING_GAP/2+(i-1)*SIBLING_GAP)
+			local fy=centerY+DEPTH_GAP
+			DrawLine(centerX,centerY+NODE_SIZE/2,fx,fy-NODE_SIZE/2)
+			MakeNode(friendInfo.Id,friendInfo.DisplayName,fx,fy,1)
+			popupBtns["expand"].MouseButton1Click:Connect(function()
+				if activePopupUserId~=friendInfo.Id then return end; ClosePopup()
+				task.spawn(function()
+					local ok2,pages2=pcall(function() return Players:GetFriendsAsync(friendInfo.Id) end); if not ok2 then return end
+					local sub={}
+					while true do
+						local pg=pages2:GetCurrentPage()
+						for _,inf in ipairs(pg) do table.insert(sub,inf); if #sub>=10 then break end end
+						if pages2.IsFinished or #sub>=10 then break end
+						pages2:AdvanceToNextPageAsync()
+					end
+					for j,subInfo in ipairs(sub) do
+						local sx=fx-(#sub-1)*60/2+(j-1)*60; local sy=fy+DEPTH_GAP
+						DrawLine(fx,fy+NODE_SIZE/2,sx,sy-NODE_SIZE/2)
+						MakeNode(subInfo.Id,subInfo.DisplayName,sx,sy,2)
+					end
+				end)
+			end)
+		end
+	end)
+end
+
+-- ── PLAYER SEARCH ─────────────────────────────────────────────────────
+local pgPlayerSearch=NewPage("PlayerSearch"); NavBtn("PLAYER SEARCH","PlayerSearch")
+Header("Search Any Player",pgPlayerSearch)
+local _,psSearchBox=TextInput("Username or User ID...",pgPlayerSearch,function() end)
+Btn("🔍  Open Friend Tree",function()
+	if not psSearchBox or psSearchBox.Text=="" then return end
+	local query=psSearchBox.Text
+	task.spawn(function()
+		local userId=tonumber(query)
+		if not userId then local ok,id=pcall(function() return Players:GetUserIdFromNameAsync(query) end); if not ok then return end; userId=id end
+		TreeOverlay.Visible=true; BuildFriendTree(userId)
+	end)
+end,pgPlayerSearch)
+Btn("🏠  My Own Friend Tree",function() TreeOverlay.Visible=true; BuildFriendTree(LP.UserId) end,pgPlayerSearch)
+Header("In-Server Players",pgPlayerSearch)
+local psInServerFrame=Instance.new("Frame",pgPlayerSearch); psInServerFrame.LayoutOrder=NextOrder()
+psInServerFrame.Size=UDim2.new(1,0,0,0); psInServerFrame.AutomaticSize=Enum.AutomaticSize.Y; psInServerFrame.BackgroundTransparency=1
+Instance.new("UIListLayout",psInServerFrame).Padding=UDim.new(0,4)
+local function RefreshPSInServer()
+	for _,c in ipairs(psInServerFrame:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
+	for _,plr in ipairs(Players:GetPlayers()) do
+		local b=Instance.new("TextButton",psInServerFrame)
+		b.Size=UDim2.new(1,0,0,30); b.BackgroundColor3=Color3.fromRGB(22,22,28)
+		b.TextColor3=Color3.fromRGB(200,200,210); b.Text=plr.Name..(plr==LP and "  (you)" or "")
+		b.Font=Enum.Font.GothamMedium; b.TextSize=11; b.BorderSizePixel=0
+		Instance.new("UICorner",b).CornerRadius=UDim.new(0,5)
+		b.MouseButton1Click:Connect(function() TreeOverlay.Visible=true; BuildFriendTree(plr.UserId) end)
+	end
+end
+RefreshPSInServer()
+Btn("↺  Refresh",function() RefreshPSInServer() end,pgPlayerSearch)
+
+-- ── OVERVIEW ─────────────────────────────────────────────────────────
+local pgOverview=NewPage("Overview"); NavBtn("OVERVIEW","Overview")
+Header("Variant & Source",pgOverview)
+for _,v in ipairs({"V1","V2","V3"}) do Btn("Set Variant: "..v,function() Cfg.Variant=v; ApplyAnims() end,pgOverview) end
+Btn("Source: Main / Alt",function() Cfg.Source=(Cfg.Source=="Main") and "Alt" or "Main"; ApplyAnims() end,pgOverview)
+Header("Quick Actions",pgOverview)
+Btn("Reload Animations",function() ApplyAnims() end,pgOverview)
+Btn("Stop Keybind Anim",function() if State.ActiveTrack then State.ActiveTrack:Stop(0.2) end; State.ActiveTrack=nil; State.ActiveKey=nil end,pgOverview)
+Btn("Clear All FX",function()
+	FX.Blur.Size=0; FX.CC.Brightness=0; FX.CC.Contrast=0; FX.CC.Saturation=0
+	FX.CC.TintColor=Color3.new(1,1,1); FX.Heartbeat:Stop(); FX.Tinnitus:Stop()
+end,pgOverview)
+Btn("Respawn",function() LP:LoadCharacter() end,pgOverview)
+Btn("Toggle Proximity FX",function() Cfg.ProximityEnabled=not Cfg.ProximityEnabled end,pgOverview)
+
+-- ── MOVEMENT ─────────────────────────────────────────────────────────
+local pgMovement=NewPage("Movement"); NavBtn("MOVEMENT","Movement")
+Header("Speeds",pgMovement)
+Slider("Walk Speed",5,150,16,function(v) Cfg.NormalSpeed=v end,pgMovement,true)
+Slider("Sprint Speed",5,300,26,function(v) Cfg.SprintSpeed=v end,pgMovement,true)
+Slider("Crouch Speed",1,80,10,function(v) Cfg.CrouchSpeed=v end,pgMovement,true)
+Slider("Jump Power",0,250,50,function(v) Cfg.JumpPower=v end,pgMovement,true)
+Slider("Gravity",10,1000,196.2,function(v) Cfg.Gravity=v end,pgMovement,false)
+Slider("Speed Smooth",1,25,10,function(v) Cfg.SpeedSmooth=v end,pgMovement,false)
+Header("Fall Damage",pgMovement)
+Toggle("Fall Damage",true,function(v) Cfg.FallDamageEnabled=v end,pgMovement)
+Toggle("Spam-Space Getup",true,function(v) Cfg.SpamToGetUp=v end,pgMovement)
+Slider("Min Fall Height",5,100,25,function(v) Cfg.MinFallHeight=v end,pgMovement,true)
+
+-- ── HEALTH ────────────────────────────────────────────────────────────
+local pgHealth=NewPage("Health"); NavBtn("HEALTH","Health")
+Header("Max Health",pgHealth)
+Slider("Max HP",100,10000,100,function(v)
+	Cfg.MaxHealth=v; task.spawn(function()
+		local c=LP.Character; local h=c and c:FindFirstChildOfClass("Humanoid"); if not h then return end
+		h.MaxHealth=v; task.wait(); h.Health=v
+	end)
+end,pgHealth,true)
+Header("Set Health",pgHealth)
+Btn("Heal to Full",function() task.spawn(function() local c=LP.Character; local h=c and c:FindFirstChildOfClass("Humanoid"); if not h then return end; h.MaxHealth=Cfg.MaxHealth; task.wait(); h.Health=h.MaxHealth end) end,pgHealth)
+for _,pct in ipairs({75,50,25,10}) do
+	Btn("Set HP: "..pct.."%",function() task.spawn(function() local c=LP.Character; local h=c and c:FindFirstChildOfClass("Humanoid"); if not h then return end; h.MaxHealth=Cfg.MaxHealth; task.wait(); h.Health=h.MaxHealth*(pct/100) end) end,pgHealth)
+end
+Slider("Custom HP %",1,100,100,function(v) task.spawn(function() local c=LP.Character; local h=c and c:FindFirstChildOfClass("Humanoid"); if not h then return end; h.MaxHealth=Cfg.MaxHealth; task.wait(); h.Health=h.MaxHealth*(v/100) end) end,pgHealth,true)
+Header("Accelerated Healing",pgHealth)
+Toggle("Regen Enabled",false,function(v) if not v then Cfg.RegenRate=0 end end,pgHealth)
+Slider("Regen % MaxHP/sec",0.1,10,1,function(v) Cfg.RegenRate=v end,pgHealth,false)
+Header("Durability",pgHealth)
+Toggle("Durability (25% dmg)",false,function(v) Cfg.DurabilityMult=v and 0.25 or 1.0 end,pgHealth)
+Slider("Damage Multiplier",0.05,2,1,function(v) Cfg.DurabilityMult=v end,pgHealth,false)
+Header("Permadeath",pgHealth)
+Toggle("Permadeath Enabled",false,function(v) Cfg.PermadeathEnabled=v end,pgHealth)
+Toggle("Ghost on Death",true,function(v) Cfg.GhostOnDeath=v end,pgHealth)
+
+-- ── VISUALS ───────────────────────────────────────────────────────────
+local pgVisuals=NewPage("Visuals"); NavBtn("VISUALS","Visuals")
+Header("Camera",pgVisuals)
+Slider("Lean Intensity",0,50,15,function(v) Cfg.LeanIntensity=v end,pgVisuals,false)
+Slider("Camera Tilt",0,30,8,function(v) Cfg.CamTilt=v end,pgVisuals,false)
+Slider("Cam Smoothing",1,20,8,function(v) Cfg.CamSmooth=v end,pgVisuals,false)
+Slider("Bob Intensity",0,5,0.3,function(v) Cfg.CamBob=v end,pgVisuals,false)
+Slider("Base FOV",30,120,75,function(v) Cfg.FOV=v end,pgVisuals,true)
+Header("Footsteps",pgVisuals)
+Toggle("Weight System",true,function(v) Cfg.WeightEnabled=v end,pgVisuals)
+Slider("Step Volume",0,3,0.6,function(v) Cfg.StepVolume=v end,pgVisuals,false)
+Slider("Step Shake",0,5,0.4,function(v) Cfg.StepShake=v end,pgVisuals,false)
+Slider("Stride Freq",0.1,2,0.4,function(v) Cfg.StrideFreq=v end,pgVisuals,false)
+Header("Health Visuals",pgVisuals)
+Toggle("Health Visuals",true,function(v) Cfg.HealthVisualsEnabled=v end,pgVisuals)
+Header("Lighting",pgVisuals)
+Btn("Apply Bloom",function() local b=Lighting:FindFirstChildOfClass("BloomEffect") or Instance.new("BloomEffect",Lighting); b.Intensity=0.8; b.Size=24; b.Threshold=0.95 end,pgVisuals)
+Btn("Remove Bloom",function() local b=Lighting:FindFirstChildOfClass("BloomEffect"); if b then b:Destroy() end end,pgVisuals)
+Btn("Day (14:00)",function() Lighting.ClockTime=14 end,pgVisuals)
+Btn("Night (0:00)",function() Lighting.ClockTime=0 end,pgVisuals)
+Btn("Reset Lighting",function() Lighting.Brightness=2; Lighting.OutdoorAmbient=Color3.new(0.5,0.5,0.5); Lighting.Ambient=Color3.new(0,0,0) end,pgVisuals)
+
+-- ── STATES ────────────────────────────────────────────────────────────
+local pgStates=NewPage("States"); NavBtn("STATES","States")
+Header("Rage",pgStates)
+Toggle("Rage Mode",false,function(v) if v then AddRage(100) else SetRage(false); State.RageValue=0 end end,pgStates)
+Slider("Rage Speed Mult",1,3,1.6,function(v) Cfg.RageSpeedMult=v end,pgStates,false)
+Slider("Rage Anim Speed",0.5,5,1.0,function(v) Cfg.RageAnimSpeed=v end,pgStates,false)
+Slider("Rage HP Regen/sec",0,15,2.0,function(v) Cfg.RageHealthRegen=v end,pgStates,false)
+Header("Nervous",pgStates)
+Toggle("Nervous Mode",false,function(v) State.IsNervous=v; ApplyAnims() end,pgStates)
+Slider("Nervous Shake",0,5,1.5,function(v) Cfg.NervousShake=v end,pgStates,false)
+Header("Sonar",pgStates)
+Toggle("Sonar Ambient FX",false,function(v) State.SonarAmbient=v end,pgStates)
+Slider("Sonar Intensity",0,10,5,function(v) State.SonarAmbientIntensity=v/10 end,pgStates,false)
+Slider("Sonar Radius",50,400,150,function(v) Cfg.SonarMaxRadius=v end,pgStates,true)
+Btn("Manual Sonar Ping",function() DoSonarPing(1) end,pgStates)
+Header("Ping / LiDAR",pgStates)
+Toggle("Ping Enabled",false,function(v) Cfg.PingEnabled=v end,pgStates)
+Toggle("Ping Show Marker",true,function(v) Cfg.PingShowMarker=v end,pgStates)
+Slider("Ping Radius",10,150,40,function(v) Cfg.PingRadius=v end,pgStates,true)
+Slider("Ping Screen Shake",0,2,0.3,function(v) Cfg.PingScreenShake=v end,pgStates,false)
+Btn("Manual Ping",function() DoPingEffect() end,pgStates)
+Header("Focus (E to focus)",pgStates)
+Toggle("Focus Enabled",true,function(v) Cfg.FocusEnabled=v; if not v then ClearFocus(false) end end,pgStates)
+Toggle("In View Only",false,function(v) Cfg.FocusInViewOnly=v end,pgStates)
+Slider("Focus Lost Threshold",0.5,5,2,function(v) Cfg.FocusLostThreshold=v end,pgStates,false)
+Btn("Clear Focus",function() ClearFocus(false) end,pgStates)
+Header("Ragdoll",pgStates)
+Btn("Toggle Ragdoll [R]",function() SetRagdoll(not State.IsRagdolled) end,pgStates)
+Header("Unconsciousness",pgStates)
+Toggle("Knockout Enabled",true,function(v) Cfg.UnconsciousnessEnabled=v end,pgStates)
+Slider("Knockout Duration",1,30,8,function(v) Cfg.KnockoutDuration=v end,pgStates,true)
+Btn("Force Knockout",function() Knockout(Cfg.KnockoutDuration) end,pgStates)
+Btn("Wake Up",function() WakeUp() end,pgStates)
+
+-- ── INJURIES ──────────────────────────────────────────────────────────
+local pgInjuries=NewPage("Injuries"); NavBtn("INJURIES","Injuries")
+Header("Blood",pgInjuries)
+Toggle("Blood Particles",true,function(v) Cfg.BloodParticlesEnabled=v end,pgInjuries)
+Toggle("Blood Pools",true,function(v) Cfg.BloodPoolsEnabled=v end,pgInjuries)
+Slider("Pool Size",1,7,6,function(v) Cfg.BloodPoolSize=v end,pgInjuries,false)
+Header("Status",pgInjuries)
+Btn("Clear All Injuries",function() ClearInjuries() end,pgInjuries)
+Header("Apply Manually",pgInjuries)
+Btn("Broken Left Leg",function() ApplyInjury("LeftLeg",60) end,pgInjuries)
+Btn("Broken Right Leg",function() ApplyInjury("RightLeg",60) end,pgInjuries)
+Btn("Broken Left Arm",function() ApplyInjury("LeftArm",40) end,pgInjuries)
+Btn("Broken Right Arm",function() ApplyInjury("RightArm",40) end,pgInjuries)
+Btn("Start Bleeding",function() ApplyInjury("Bleeding",30) end,pgInjuries)
+Btn("Internal Bleeding",function() ApplyInjury("InternalBleed",80) end,pgInjuries)
+Btn("Concussion",function() ApplyInjury("Concussion",20) end,pgInjuries)
+Btn("Burns",function() ApplyInjury("Burns",50) end,pgInjuries)
+Btn("Fracture",function() ApplyInjury("Fracture",30) end,pgInjuries)
+Btn("Shrapnel",function() ApplyInjury("Shrapnel",40) end,pgInjuries)
+Header("Rates",pgInjuries)
+Slider("Bleed HP/sec",0.1,5,0.8,function(v) Injuries.BleedRate=v end,pgInjuries,false)
+Slider("Internal HP/sec",0.1,8,1.5,function(v) Injuries.InternalRate=v end,pgInjuries,false)
+Header("Explosion Physics",pgInjuries)
+Toggle("Explosion Force",true,function(v) Cfg.ExplosionForce=v end,pgInjuries)
+Toggle("Velocity Damage",true,function(v) Cfg.ExplosionVelocityDamage=v end,pgInjuries)
+Btn("Test Explosion",function() local c=LP.Character; local r=c and c:FindFirstChild("HumanoidRootPart"); if r then MakeExplosion(r.Position+Vector3.new(10,0,0),25,400000) end end,pgInjuries)
+Header("Ragdoll",pgInjuries)
+Toggle("Limbs Collidable",true,function(v) Cfg.RagdollLimbsCollidable=v end,pgInjuries)
+Toggle("Ragdoll On Explosion",true,function(v) Cfg.RagdollOnExplosion=v end,pgInjuries)
+Toggle("Ragdoll On Jerk",true,function(v) Cfg.RagdollOnJerk=v end,pgInjuries)
+Slider("Jerk Threshold",20,120,45,function(v) Cfg.RagdollJerkThreshold=v end,pgInjuries,true)
+Header("Penetration Detection",pgInjuries)
+Toggle("Penetration Detection",false,function(v)
+	if v then SetupPenetrationDetection()
+	elseif State.PenetrationConn then State.PenetrationConn:Disconnect() end
+end,pgInjuries)
+Header("Fall Thresholds",pgInjuries)
+Slider("Minor Injury (studs)",25,80,35,function(v) Cfg.InjuryThresholdMinor=v end,pgInjuries,true)
+Slider("Major Injury (studs)",40,120,55,function(v) Cfg.InjuryThresholdMajor=v end,pgInjuries,true)
+
+-- ── ANIMATIONS ────────────────────────────────────────────────────────
+local pgAnims=NewPage("Animations"); NavBtn("ANIMATIONS","Animations")
+local function saveAnimNames()
+	local t={}; for _,entry in ipairs(Anims.M_Key) do t[entry.id]=entry.name end; xenoSave(t)
+end
+Header("M-Key",pgAnims)
+do
+	local row=Instance.new("Frame",pgAnims); row.LayoutOrder=NextOrder()
+	row.Size=UDim2.new(1,0,0,38); row.BackgroundColor3=Color3.fromRGB(14,14,24); row.BorderSizePixel=0
+	Instance.new("UICorner",row).CornerRadius=UDim.new(0,5)
+	local tb=Instance.new("TextBox",row); tb.Size=UDim2.new(0.65,0,0,28); tb.Position=UDim2.new(0,6,0.5,-14)
+	tb.BackgroundColor3=Color3.fromRGB(22,22,32); tb.BorderSizePixel=0; tb.PlaceholderText="Add Anim ID..."
+	tb.Text=""; tb.TextColor3=Color3.new(1,1,1); tb.PlaceholderColor3=Color3.fromRGB(80,80,80)
+	tb.Font=Enum.Font.GothamMedium; tb.TextSize=11; tb.TextXAlignment=Enum.TextXAlignment.Left
+	Instance.new("UICorner",tb).CornerRadius=UDim.new(0,4)
+	local addBtn=Instance.new("TextButton",row); addBtn.Size=UDim2.new(0.3,0,0,28)
+	addBtn.Position=UDim2.new(0.68,0,0.5,-14); addBtn.BackgroundColor3=Color3.fromRGB(40,100,60)
+	addBtn.TextColor3=Color3.new(1,1,1); addBtn.Text="+ ADD"; addBtn.Font=Enum.Font.GothamBold
+	addBtn.TextSize=11; addBtn.BorderSizePixel=0; Instance.new("UICorner",addBtn).CornerRadius=UDim.new(0,4)
+	addBtn.MouseButton1Click:Connect(function()
+		local id=tb.Text:match("%d+"); if not id or id=="" then return end
+		table.insert(Anims.M_Key,{id=id,name="Custom "..id}); tb.Text=""; saveAnimNames()
+	end)
+end
+for i,entry in ipairs(Anims.M_Key) do
+	local row=Instance.new("Frame",pgAnims); row.LayoutOrder=NextOrder()
+	row.Size=UDim2.new(1,0,0,62); row.BackgroundColor3=Color3.fromRGB(18,18,24); row.BorderSizePixel=0
+	Instance.new("UICorner",row).CornerRadius=UDim.new(0,5)
+	local playBtn=Instance.new("TextButton",row); playBtn.Size=UDim2.new(0,60,0,30)
+	playBtn.Position=UDim2.new(0,6,0,4); playBtn.BackgroundColor3=Color3.fromRGB(40,80,200)
+	playBtn.Text="PLAY"; playBtn.TextColor3=Color3.new(1,1,1); playBtn.Font=Enum.Font.GothamBold
+	playBtn.TextSize=11; playBtn.BorderSizePixel=0; Instance.new("UICorner",playBtn).CornerRadius=UDim.new(0,4)
+	playBtn.MouseButton1Click:Connect(function() PlayKeybindAnim(entry.id,"M"..i) end)
+	local nameLbl=Instance.new("TextLabel",row); nameLbl.Size=UDim2.new(1,-80,0,20); nameLbl.Position=UDim2.new(0,72,0,4)
+	nameLbl.BackgroundTransparency=1; nameLbl.Text=entry.name; nameLbl.TextColor3=Color3.fromRGB(210,210,210)
+	nameLbl.Font=Enum.Font.GothamBold; nameLbl.TextSize=12; nameLbl.TextXAlignment=Enum.TextXAlignment.Left
+	local idLbl=Instance.new("TextLabel",row); idLbl.Size=UDim2.new(1,-80,0,14); idLbl.Position=UDim2.new(0,72,0,22)
+	idLbl.BackgroundTransparency=1; idLbl.Text=entry.id; idLbl.TextColor3=Color3.fromRGB(90,90,100)
+	idLbl.Font=Enum.Font.GothamMedium; idLbl.TextSize=9; idLbl.TextXAlignment=Enum.TextXAlignment.Left
+	local renameTB=Instance.new("TextBox",row); renameTB.Size=UDim2.new(1,-80,0,22); renameTB.Position=UDim2.new(0,72,0,38)
+	renameTB.BackgroundColor3=Color3.fromRGB(28,28,35); renameTB.BorderSizePixel=0; renameTB.PlaceholderText="Rename…"
+	renameTB.Text=""; renameTB.TextColor3=Color3.new(1,1,1); renameTB.PlaceholderColor3=Color3.fromRGB(80,80,80)
+	renameTB.Font=Enum.Font.GothamMedium; renameTB.TextSize=10; renameTB.TextXAlignment=Enum.TextXAlignment.Left
+	Instance.new("UICorner",renameTB).CornerRadius=UDim.new(0,3)
+	renameTB.FocusLost:Connect(function(enter) if enter and renameTB.Text~="" then entry.name=renameTB.Text; nameLbl.Text=entry.name; renameTB.Text=""; saveAnimNames() end end)
+end
+
+local function makeAddableBankSection(title,bank)
+	Header(title.." (+ Add ID)",pgAnims)
+	local addRow=Instance.new("Frame",pgAnims); addRow.LayoutOrder=NextOrder()
+	addRow.Size=UDim2.new(1,0,0,38); addRow.BackgroundColor3=Color3.fromRGB(14,14,24); addRow.BorderSizePixel=0
+	Instance.new("UICorner",addRow).CornerRadius=UDim.new(0,5)
+	local tb=Instance.new("TextBox",addRow); tb.Size=UDim2.new(0.65,0,0,28); tb.Position=UDim2.new(0,6,0.5,-14)
+	tb.BackgroundColor3=Color3.fromRGB(22,22,32); tb.BorderSizePixel=0; tb.PlaceholderText="Add Anim ID..."; tb.Text=""
+	tb.TextColor3=Color3.new(1,1,1); tb.PlaceholderColor3=Color3.fromRGB(80,80,80); tb.Font=Enum.Font.GothamMedium
+	tb.TextSize=11; tb.TextXAlignment=Enum.TextXAlignment.Left; Instance.new("UICorner",tb).CornerRadius=UDim.new(0,4)
+	local ab=Instance.new("TextButton",addRow); ab.Size=UDim2.new(0.3,0,0,28); ab.Position=UDim2.new(0.68,0,0.5,-14)
+	ab.BackgroundColor3=Color3.fromRGB(40,100,60); ab.TextColor3=Color3.new(1,1,1); ab.Text="+ ADD"
+	ab.Font=Enum.Font.GothamBold; ab.TextSize=11; ab.BorderSizePixel=0; Instance.new("UICorner",ab).CornerRadius=UDim.new(0,4)
+	ab.MouseButton1Click:Connect(function() local id=tb.Text:match("%d+"); if not id or id=="" then return end; table.insert(bank,id); tb.Text="" end)
+	for i,id in ipairs(bank) do Btn(title:sub(1,1)..i.."  ["..id.."]",function() PlayKeybindAnim(id,title..i) end,pgAnims) end
+end
+makeAddableBankSection("O-Key",Anims.O_Key)
+makeAddableBankSection("P-Key",Anims.P_Key)
+makeAddableBankSection("I-Key",Anims.I_Key)
+Header("Jigs & Dances",pgAnims)
+for i,id in ipairs(Anims.Jigs) do Btn("JIG "..i.."  ["..id.."]",function() PlayKeybindAnim(id,"JIG"..i) end,pgAnims) end
+Header("Misc",pgAnims)
+Btn("Crash  ["..Anims.Misc.Crash.."]",function() PlayKeybindAnim(Anims.Misc.Crash,"CRASH") end,pgAnims)
+Btn("Sit    ["..Anims.Misc.Sit.."]",function() PlayKeybindAnim(Anims.Misc.Sit,"SIT") end,pgAnims)
+
+-- ── NPC / SPAWN ───────────────────────────────────────────────────────
+local pgSpawn=NewPage("Spawn"); NavBtn("SPAWN","Spawn")
+Header("Spawn NPC",pgSpawn)
+local npcBehaviorVal="Neutral"; local behaviorBtns={}
+for _,beh in ipairs({"Friendly","Neutral","Hostile"}) do
+	local b=Btn(beh,function()
+		npcBehaviorVal=beh
+		for _,bb in pairs(behaviorBtns) do bb.BackgroundColor3=Color3.fromRGB(22,22,28) end
+		behaviorBtns[beh].BackgroundColor3=Color3.fromRGB(40,60,140)
+	end,pgSpawn)
+	behaviorBtns[beh]=b
+end
+behaviorBtns["Neutral"].BackgroundColor3=Color3.fromRGB(40,60,140)
+local npcSpeedVal=16
+local _,npcSpeedBox=TextInput("NPC Walk Speed (default 16)...",pgSpawn,function(v) npcSpeedVal=tonumber(v) or 16 end)
+Btn("⊕  Spawn NPC",function() SpawnNPC(npcBehaviorVal,npcSpeedVal) end,pgSpawn)
+Header("Spawn Model by ID",pgSpawn)
+local _,modelIdBox=TextInput("Model Asset ID...",pgSpawn,function() end)
+Btn("⊕  Spawn Model",function()
+	if not modelIdBox or modelIdBox.Text=="" then return end
+	local id=tonumber(modelIdBox.Text); if not id then return end
+	local char=LP.Character; local root=char and char:FindFirstChild("HumanoidRootPart")
+	task.spawn(function()
+		local ok,asset=pcall(function() return game:GetService("InsertService"):LoadAsset(id) end)
+		if not ok or not asset then return end
+		local model=asset:FindFirstChildOfClass("Model") or asset
+		if root then local cf=root.CFrame*CFrame.new(0,0,-6); if model:IsA("Model") and model.PrimaryPart then model:SetPrimaryPartCFrame(cf) elseif model:IsA("BasePart") then model.CFrame=cf end end
+		model.Parent=workspace; table.insert(SpawnedObjects,{model=model,type="model"}); asset:Destroy()
+	end)
+end,pgSpawn)
+Header("Cleanup",pgSpawn)
+Btn("Remove All Spawned",function() for _,rec in ipairs(SpawnedObjects) do pcall(function() rec.model:Destroy() end) end; for i=#SpawnedObjects,1,-1 do table.remove(SpawnedObjects,i) end; for i=#NPCList,1,-1 do table.remove(NPCList,i) end end,pgSpawn)
+Btn("Remove Last Spawned",function() if #SpawnedObjects==0 then return end; pcall(function() table.remove(SpawnedObjects).model:Destroy() end) end,pgSpawn)
+
+-- ── CATALOG ───────────────────────────────────────────────────────────
+local pgCatalog=NewPage("Catalog"); NavBtn("CATALOG","Catalog")
+Header("Avatar Creator",pgCatalog)
+local catTypes={"Hat","HairAccessory","FaceAccessory","NeckAccessory","ShoulderAccessory","FrontAccessory","BackAccessory","WaistAccessory","Shirt","Pants","Face","TShirt"}
+local catVal="Hat"
+do
+	local catScroll=Instance.new("ScrollingFrame",pgCatalog); catScroll.LayoutOrder=NextOrder()
+	catScroll.Size=UDim2.new(1,0,0,38); catScroll.CanvasSize=UDim2.new(0,#catTypes*82,0,0)
+	catScroll.ScrollBarThickness=3; catScroll.BackgroundTransparency=1
+	local rl=Instance.new("UIListLayout",catScroll); rl.FillDirection=Enum.FillDirection.Horizontal; rl.Padding=UDim.new(0,4)
+	local catBtns={}
+	for _,t in ipairs(catTypes) do
+		local tb=Instance.new("TextButton",catScroll); tb.Size=UDim2.new(0,78,0,30)
+		tb.Text=t; tb.TextSize=10; tb.Font=Enum.Font.GothamMedium
+		tb.BackgroundColor3=Color3.fromRGB(25,25,35); tb.TextColor3=Color3.fromRGB(180,180,200); tb.BorderSizePixel=0
+		Instance.new("UICorner",tb).CornerRadius=UDim.new(0,4)
+		catBtns[t]=tb
+		tb.MouseButton1Click:Connect(function() catVal=t; for _,b in pairs(catBtns) do b.BackgroundColor3=Color3.fromRGB(25,25,35) end; tb.BackgroundColor3=Color3.fromRGB(60,80,180) end)
+	end
+	catBtns["Hat"].BackgroundColor3=Color3.fromRGB(60,80,180)
+end
+local _,catalogSearchBox=TextInput("Search keyword...",pgCatalog,function() end)
+local catResultsFrame=Instance.new("Frame",pgCatalog); catResultsFrame.LayoutOrder=NextOrder()
+catResultsFrame.Size=UDim2.new(1,0,0,0); catResultsFrame.AutomaticSize=Enum.AutomaticSize.Y; catResultsFrame.BackgroundTransparency=1
+Instance.new("UIListLayout",catResultsFrame).Padding=UDim.new(0,3)
+local catStatus=Instance.new("TextLabel",catResultsFrame); catStatus.Size=UDim2.new(1,0,0,22)
+catStatus.BackgroundTransparency=1; catStatus.Text="Enter search and press Search"
+catStatus.TextColor3=Color3.fromRGB(120,120,140); catStatus.Font=Enum.Font.GothamMedium; catStatus.TextSize=11; catStatus.LayoutOrder=0
+local function RenderCatalogResults(items,err)
+	for _,c in ipairs(catResultsFrame:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
+	if err or not items then catStatus.Text="Error: "..(err or "?"); return end
+	if #items==0 then catStatus.Text="No results"; return end
+	catStatus.Text=#items.." results:"
+	for i,item in ipairs(items) do
+		local name=item.name or ("Item "..i); local id=item.id or 0
+		local rb=Instance.new("TextButton",catResultsFrame); rb.Size=UDim2.new(1,0,0,30)
+		rb.BackgroundColor3=Color3.fromRGB(20,22,32); rb.Text=name.."  ["..id.."]"
+		rb.TextColor3=Color3.fromRGB(200,210,255); rb.Font=Enum.Font.GothamMedium; rb.TextSize=11
+		rb.BorderSizePixel=0; rb.LayoutOrder=i+1; Instance.new("UICorner",rb).CornerRadius=UDim.new(0,4)
+		rb.MouseButton1Click:Connect(function()
+			local hum,desc=GetHumDesc(); if not hum or not desc then return end
+			local at=(item.itemType or catVal)
+			if at=="Shirt" then desc.Shirt=id elseif at=="Pants" then desc.Pants=id
+			elseif at=="TShirt" then desc.GraphicTShirt=id elseif at=="Face" then desc.Face=id
+			else local cur=desc.HatAccessory or ""; desc.HatAccessory=cur=="" and tostring(id) or (cur..","..id) end
+			ApplyDesc(desc); rb.BackgroundColor3=Color3.fromRGB(20,50,20)
+		end)
+	end
+end
+Btn("🔍  Search",function() local q=catalogSearchBox and catalogSearchBox.Text or ""; if q=="" then catStatus.Text="Enter a keyword first"; return end; catStatus.Text="Searching..."; CatalogSearch(q,catVal,RenderCatalogResults) end,pgCatalog)
+Header("Body Colors",pgCatalog)
+local colorParts={{"Head","HeadColor"},{"Torso","TorsoColor"},{"Left Arm","LeftArmColor"},{"Right Arm","RightArmColor"},{"Left Leg","LeftLegColor"},{"Right Leg","RightLegColor"}}
+local brickColors={{"White",Color3.new(1,1,1)},{"Black",Color3.new(0.06,0.06,0.06)},{"Bright red",Color3.fromRGB(196,40,28)},{"Bright blue",Color3.fromRGB(13,105,172)},{"Bright green",Color3.fromRGB(39,140,41)},{"Bright yellow",Color3.fromRGB(245,205,48)},{"Sand green",Color3.fromRGB(120,144,130)},{"Medium stone",Color3.fromRGB(163,162,165)},{"Reddish brown",Color3.fromRGB(105,64,40)},{"Dark orange",Color3.fromRGB(218,133,65)},{"Pink",Color3.fromRGB(255,152,220)},{"Cyan",Color3.fromRGB(1,172,228)}}
+for _,pair in ipairs(colorParts) do
+	local partName,descKey=pair[1],pair[2]
+	local lbl=Instance.new("TextLabel",pgCatalog); lbl.LayoutOrder=NextOrder(); lbl.Size=UDim2.new(1,0,0,16)
+	lbl.BackgroundTransparency=1; lbl.Text=partName; lbl.TextColor3=Color3.fromRGB(160,160,180)
+	lbl.Font=Enum.Font.GothamMedium; lbl.TextSize=11; lbl.TextXAlignment=Enum.TextXAlignment.Left
+	local swatchRow=Instance.new("Frame",pgCatalog); swatchRow.LayoutOrder=NextOrder(); swatchRow.Size=UDim2.new(1,0,0,24); swatchRow.BackgroundTransparency=1
+	local rl2=Instance.new("UIListLayout",swatchRow); rl2.FillDirection=Enum.FillDirection.Horizontal; rl2.Padding=UDim.new(0,3)
+	for _,cp in ipairs(brickColors) do
+		local colName,col=cp[1],cp[2]
+		local sw=Instance.new("TextButton",swatchRow); sw.Size=UDim2.new(0,20,0,20); sw.BackgroundColor3=col; sw.BorderSizePixel=0; sw.Text=""
+		Instance.new("UICorner",sw).CornerRadius=UDim.new(0,3)
+		sw.MouseButton1Click:Connect(function() local hum,desc=GetHumDesc(); if not hum or not desc then return end; desc[descKey]=BrickColor.new(colName); ApplyDesc(desc) end)
+	end
+end
+Header("Scale (R15 only)",pgCatalog)
+Slider("Head Size",0.5,2,1,function(v) ApplyScale("Head",v) end,pgCatalog,false)
+Slider("Height",0.9,1.05,1,function(v) ApplyScale("Height",v) end,pgCatalog,false)
+Slider("Width",0.7,1,1,function(v) ApplyScale("Width",v) end,pgCatalog,false)
+Slider("Depth",0.7,1,1,function(v) ApplyScale("Depth",v) end,pgCatalog,false)
+Slider("Body Type",0,1,0,function(v) ApplyScale("BodyType",v) end,pgCatalog,false)
+Slider("Proportion",0,1,0,function(v) ApplyScale("Proportion",v) end,pgCatalog,false)
+Header("Apply by ID",pgCatalog)
+local _,idBox=TextInput("Asset ID...",pgCatalog,function() end)
+Btn("Apply Accessory ID",function() if not idBox or idBox.Text=="" then return end; local id=tonumber(idBox.Text); if not id then return end; local hum,desc=GetHumDesc(); if not hum then return end; local cur=desc.HatAccessory or ""; desc.HatAccessory=cur=="" and tostring(id) or (cur..","..id); ApplyDesc(desc) end,pgCatalog)
+Btn("Apply Shirt ID",function() if idBox and idBox.Text~="" then local h,d=GetHumDesc(); if h then d.Shirt=tonumber(idBox.Text); ApplyDesc(d) end end end,pgCatalog)
+Btn("Apply Pants ID",function() if idBox and idBox.Text~="" then local h,d=GetHumDesc(); if h then d.Pants=tonumber(idBox.Text); ApplyDesc(d) end end end,pgCatalog)
+Btn("Apply Face ID",function() if idBox and idBox.Text~="" then local h,d=GetHumDesc(); if h then d.Face=tonumber(idBox.Text); ApplyDesc(d) end end end,pgCatalog)
+Btn("Clear All Accessories",function() local h,d=GetHumDesc(); if not h then return end; d.HatAccessory=""; d.HairAccessory=""; d.FaceAccessory=""; d.NeckAccessory=""; d.ShouldersAccessory=""; d.FrontAccessory=""; d.BackAccessory=""; d.WaistAccessory=""; ApplyDesc(d) end,pgCatalog)
+Header("Reset",pgCatalog)
+Btn("⟳ Reset to Original",function()
+	if AvatarState.OriginalDesc then ApplyDesc(AvatarState.OriginalDesc)
+	else task.spawn(function() local ok,d=pcall(function() return Players:GetHumanoidDescriptionFromUserId(LP.UserId) end); if ok and d then ApplyDesc(d) end end) end
+end,pgCatalog)
+Toggle("Persist Through Respawn",true,function(v) AvatarState.PersistCatalog=v end,pgCatalog)
+
+-- ── PLAYERS ───────────────────────────────────────────────────────────
+local TTSForPlayers={}; local PastPlayersList={}
+Players.PlayerRemoving:Connect(function(plr)
+	table.insert(PastPlayersList,{name=plr.Name,userId=plr.UserId,leftAt=os.time()})
+	if #PastPlayersList>50 then table.remove(PastPlayersList,1) end
+end)
+local GH_TTS_OnPlayerChat=Instance.new("BindableEvent")
+GH_TTS_OnPlayerChat.Name="GH_TTS_OnPlayerChat"; GH_TTS_OnPlayerChat.Parent=ScreenGui
+GH_TTS_OnPlayerChat.Event:Connect(function(playerName,message)
+	if not TTSForPlayers[playerName] then return end
+	if _G.GH_TTS and message and message~="" then pcall(function() _G.GH_TTS.Text=message; _G.GH_TTS.TimePosition=0; _G.GH_TTS:Play() end) end
+end)
+local pgPlayers=NewPage("Players"); NavBtn("PLAYERS","Players")
+Header("In Server",pgPlayers)
+local playersListFrame=Instance.new("Frame",pgPlayers); playersListFrame.LayoutOrder=NextOrder()
+playersListFrame.Size=UDim2.new(1,0,0,0); playersListFrame.AutomaticSize=Enum.AutomaticSize.Y; playersListFrame.BackgroundTransparency=1
+Instance.new("UIListLayout",playersListFrame).Padding=UDim.new(0,4)
+local function RefreshPlayersList()
+	for _,c in ipairs(playersListFrame:GetChildren()) do if c:IsA("TextButton") or c:IsA("Frame") then c:Destroy() end end
+	for _,plr in ipairs(Players:GetPlayers()) do
+		if plr~=LP then
+			local row=Instance.new("Frame",playersListFrame); row.Size=UDim2.new(1,0,0,36)
+			row.BackgroundColor3=Color3.fromRGB(22,22,28); row.BorderSizePixel=0
+			Instance.new("UICorner",row).CornerRadius=UDim.new(0,5)
+			local lbl=Instance.new("TextLabel",row); lbl.Size=UDim2.new(0.5,-4,1,0); lbl.Position=UDim2.new(0,8,0,0)
+			lbl.BackgroundTransparency=1; lbl.Text=plr.Name; lbl.TextColor3=Color3.fromRGB(200,200,210)
+			lbl.Font=Enum.Font.GothamBold; lbl.TextSize=12; lbl.TextXAlignment=Enum.TextXAlignment.Left
+			local stats=Instance.new("TextLabel",row); stats.Size=UDim2.new(0.5,-8,0,14); stats.Position=UDim2.new(0.5,0,0,2)
+			stats.BackgroundTransparency=1; stats.Text="—"; stats.TextColor3=Color3.fromRGB(120,120,140)
+			stats.Font=Enum.Font.GothamMedium; stats.TextSize=9; stats.TextXAlignment=Enum.TextXAlignment.Right
+			task.spawn(function()
+				while row and row.Parent and plr.Parent do
+					local c=plr.Character; local h=c and c:FindFirstChildOfClass("Humanoid"); local r=c and c:FindFirstChild("HumanoidRootPart")
+					if h and r then stats.Text=string.format("HP %d  |  %.0f, %.0f, %.0f",h.Health,r.Position.X,r.Position.Y,r.Position.Z) else stats.Text="—" end
+					task.wait(0.5)
+				end
+			end)
+			local ttsBtn=Instance.new("TextButton",row); ttsBtn.Size=UDim2.new(0,70,0,22); ttsBtn.Position=UDim2.new(1,-78,0.5,-11)
+			ttsBtn.Text=TTSForPlayers[plr.Name] and "TTS ON" or "TTS OFF"
+			ttsBtn.BackgroundColor3=TTSForPlayers[plr.Name] and Color3.fromRGB(40,100,60) or Color3.fromRGB(50,50,55)
+			ttsBtn.TextColor3=Color3.new(1,1,1); ttsBtn.Font=Enum.Font.GothamBold; ttsBtn.TextSize=10; ttsBtn.BorderSizePixel=0
+			Instance.new("UICorner",ttsBtn).CornerRadius=UDim.new(0,4)
+			ttsBtn.MouseButton1Click:Connect(function()
+				TTSForPlayers[plr.Name]=not TTSForPlayers[plr.Name]
+				ttsBtn.Text=TTSForPlayers[plr.Name] and "TTS ON" or "TTS OFF"
+				ttsBtn.BackgroundColor3=TTSForPlayers[plr.Name] and Color3.fromRGB(40,100,60) or Color3.fromRGB(50,50,55)
+			end)
+		end
+	end
+end
+RefreshPlayersList()
+Btn("Refresh List",function() RefreshPlayersList() end,pgPlayers)
+Header("Players Who Left",pgPlayers)
+local pastScroll=Instance.new("ScrollingFrame",pgPlayers); pastScroll.LayoutOrder=NextOrder()
+pastScroll.Size=UDim2.new(1,0,0,120); pastScroll.BackgroundTransparency=1; pastScroll.ScrollBarThickness=2
+pastScroll.CanvasSize=UDim2.new(0,0,0,0); pastScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y
+Instance.new("UIListLayout",pastScroll).Padding=UDim.new(0,2)
+local function RefreshPastPlayers()
+	for _,c in ipairs(pastScroll:GetChildren()) do c:Destroy() end
+	for i=#PastPlayersList,1,-1 do
+		local rec=PastPlayersList[i]; local row=Instance.new("TextLabel",pastScroll)
+		row.Size=UDim2.new(1,0,0,20); row.BackgroundTransparency=1
+		row.Text=rec.name.."  (ID: "..tostring(rec.userId)..")"
+		row.TextColor3=Color3.fromRGB(100,100,110); row.Font=Enum.Font.GothamMedium; row.TextSize=10; row.TextXAlignment=Enum.TextXAlignment.Left
+	end
+end
+Btn("Refresh Past",function() RefreshPastPlayers() end,pgPlayers)
+
+-- ── PROXIMITY ─────────────────────────────────────────────────────────
+local pgProx=NewPage("Proximity"); NavBtn("PROXIMITY","Proximity")
+Header("Player Proximity System",pgProx)
+Toggle("Enable Proximity FX",false,function(v) Cfg.ProximityEnabled=v; if not v then ClearProximityFX() end end,pgProx)
+Toggle("Highlight Nearby Players",true,function(v) Cfg.ProximityHighlight=v end,pgProx)
+Toggle("Marker/Name Billboard",true,function(v) Cfg.ProximityMarker=v end,pgProx)
+Slider("Highlight Range",10,200,40,function(v) Cfg.ProximityRange=v end,pgProx,true)
+Slider("Marker Range",10,300,60,function(v) Cfg.ProximityMarkerRange=v end,pgProx,true)
+Toggle("Off-Screen Directional Marker",true,function(v) Cfg.ProximityOffScreenMarker=v end,pgProx)
+
+-- ── AUDIO ─────────────────────────────────────────────────────────────
+local pgAudio=NewPage("Audio"); NavBtn("AUDIO","Audio")
+Header("Ambient / Music Player",pgAudio)
+local _,audioIdBox=TextInput("Sound ID or rbxassetid://...",pgAudio,function() end)
+Slider("Volume",0,5,1,function(v) GetAmbientSound().Volume=v end,pgAudio,false)
+Slider("Pitch",0.1,4,1,function(v) GetAmbientSound().PlaybackSpeed=v end,pgAudio,false)
+Toggle("Looped",true,function(v) GetAmbientSound().Looped=v end,pgAudio)
+Btn("▶  Play",function() local snd=GetAmbientSound(); if audioIdBox and audioIdBox.Text~="" then local raw=audioIdBox.Text; if raw:match("^%d+$") then raw="rbxassetid://"..raw end; snd.SoundId=raw end; snd:Play() end,pgAudio)
+Btn("⏸  Pause",function() GetAmbientSound():Pause() end,pgAudio)
+Btn("⏹  Stop",function() GetAmbientSound():Stop() end,pgAudio)
+Header("Ambient Effects",pgAudio)
+Toggle("Ambient Reverb",false,function(v) local r=GetOrCreateAmbientEffect("Reverb","ReverbSoundEffect"); r.Enabled=v; if v then r.DecayTime=Cfg.TTSReverbDecay; r.WetLevel=Cfg.TTSReverbWet end end,pgAudio)
+Toggle("Ambient Echo",false,function(v) local e=GetOrCreateAmbientEffect("Echo","EchoSoundEffect"); e.Enabled=v; if v then e.Delay=Cfg.TTSEchoDelay; e.Feedback=Cfg.TTSEchoFeedback; e.WetLevel=Cfg.TTSEchoWet end end,pgAudio)
+Toggle("Ambient Distortion",false,function(v) local d=GetOrCreateAmbientEffect("Distortion","DistortionSoundEffect"); d.Enabled=v; if v then d.Level=Cfg.TTSDistLevel end end,pgAudio)
+Slider("Reverb Decay",0.1,10,1.5,function(v) Cfg.TTSReverbDecay=v; local r=AmbientEffects["Reverb"]; if r then r.DecayTime=v end end,pgAudio,false)
+Slider("Reverb Wet",0,1,0.3,function(v) Cfg.TTSReverbWet=v; local r=AmbientEffects["Reverb"]; if r then r.WetLevel=v end end,pgAudio,false)
+Slider("Echo Delay",0.05,1,0.3,function(v) Cfg.TTSEchoDelay=v; local e=AmbientEffects["Echo"]; if e then e.Delay=v end end,pgAudio,false)
+Slider("Echo Wet",0,1,0.4,function(v) Cfg.TTSEchoWet=v; local e=AmbientEffects["Echo"]; if e then e.WetLevel=v end end,pgAudio,false)
+Slider("Distortion Level",0,1,0.2,function(v) Cfg.TTSDistLevel=v; local d=AmbientEffects["Distortion"]; if d then d.Level=v end end,pgAudio,false)
+Header("Preset Ambients",pgAudio)
+local ambientPresets={{name="Forest",id="rbxassetid://142693328"},{name="Rain",id="rbxassetid://140932594"},{name="Wind",id="rbxassetid://161876916"},{name="Heartbeat",id="rbxassetid://139459003161851"},{name="City",id="rbxassetid://166619644"},{name="Silence",id=""}}
+for _,pr in ipairs(ambientPresets) do Btn(pr.name,function() local snd=GetAmbientSound(); if pr.id=="" then snd:Stop(); return end; snd.SoundId=pr.id; snd.Looped=true; snd:Play() end,pgAudio) end
+Header("Global Sound FX",pgAudio)
+local FXChain={}
+local function GetOrCreateFX(class,name) if FXChain[name] then return FXChain[name] end; local fx=Instance.new(class); fx.Name="GH_"..name; fx.Parent=workspace; FXChain[name]=fx; return fx end
+Toggle("Reverb",false,function(v) GetOrCreateFX("ReverbSoundEffect","Reverb").Enabled=v end,pgAudio)
+Toggle("Echo",false,function(v) GetOrCreateFX("EchoSoundEffect","Echo").Enabled=v end,pgAudio)
+Toggle("Distortion",false,function(v) GetOrCreateFX("DistortionSoundEffect","Distortion").Enabled=v end,pgAudio)
+Toggle("Equalizer",false,function(v) GetOrCreateFX("EqualizerSoundEffect","EQ").Enabled=v end,pgAudio)
+Slider("Reverb Decay",0,30,1.5,function(v) GetOrCreateFX("ReverbSoundEffect","Reverb").DecayTime=v end,pgAudio,false)
+Slider("EQ Low Gain",-14,14,0,function(v) GetOrCreateFX("EqualizerSoundEffect","EQ").LowGain=v end,pgAudio,false)
+Slider("EQ High Gain",-14,14,0,function(v) GetOrCreateFX("EqualizerSoundEffect","EQ").HighGain=v end,pgAudio,false)
+Btn("🏛 Cathedral",function() local r=GetOrCreateFX("ReverbSoundEffect","Reverb"); r.DecayTime=8; r.Density=1; r.WetLevel=0.7; r.Enabled=true end,pgAudio)
+Btn("📻 Radio",function() local eq=GetOrCreateFX("EqualizerSoundEffect","EQ"); eq.LowGain=-8; eq.MidGain=3; eq.HighGain=-6; eq.Enabled=true; local d=GetOrCreateFX("DistortionSoundEffect","Distortion"); d.Level=0.2; d.Enabled=true end,pgAudio)
+Btn("🧹 Clear FX",function() for _,fx in pairs(FXChain) do fx.Enabled=false end end,pgAudio)
+
+-- ── TTS ───────────────────────────────────────────────────────────────
+do
+	local pgTTS=NewPage("TTS"); NavBtn("TTS","TTS")
+	Header("Text-to-Speech",pgTTS)
+	Toggle("TTS Enabled",false,function(v) Cfg.TTSEnabled=v end,pgTTS)
+	Header("Voice",pgTTS)
+	local voiceBtns={}
+	for i=1,8 do
+		local vb=Btn("Voice "..i,function()
+			Cfg.TTSVoiceId=tostring(i)
+			if _G.GH_TTS then pcall(function() _G.GH_TTS.VoiceId=Cfg.TTSVoiceId end) end
+			for j,b in ipairs(voiceBtns) do b.BackgroundColor3=(j==i) and Color3.fromRGB(40,80,200) or Color3.fromRGB(22,22,28) end
+		end,pgTTS)
+		voiceBtns[i]=vb
+	end
+	voiceBtns[1].BackgroundColor3=Color3.fromRGB(40,80,200)
+	Header("Volume & Rate",pgTTS)
+	Slider("Output Volume",0,5,1,function(v) Cfg.TTSVolume=v; if _G.GH_TTS_FADER then _G.GH_TTS_FADER.Volume=v end end,pgTTS,false)
+	Slider("Playback Rate",0.5,2,1,function(v) Cfg.TTSRate=v; if _G.GH_TTS_PITCH then pcall(function() _G.GH_TTS_PITCH.Pitch=math.clamp(v*2^(Cfg.TTSPitch/12),0.5,2) end) end end,pgTTS,false)
+	Header("Pitch",pgTTS)
+	Slider("Pitch (semitones)",-12,12,0,function(v) Cfg.TTSPitch=v; if _G.GH_TTS_PITCH then pcall(function() _G.GH_TTS_PITCH.Pitch=math.clamp(Cfg.TTSRate*2^(v/12),0.5,2) end) end end,pgTTS,false)
+	Header("Effects",pgTTS)
+	Toggle("TTS Reverb",false,function(v) Cfg.TTSReverb=v; if _G.GH_TTS_REVERB then pcall(function() _G.GH_TTS_REVERB.Bypass=not v end) end end,pgTTS)
+	Toggle("TTS Echo",false,function(v) Cfg.TTSEcho=v; if _G.GH_TTS_ECHO then pcall(function() _G.GH_TTS_ECHO.Bypass=not v end) end end,pgTTS)
+	Toggle("TTS Distortion",false,function(v) Cfg.TTSDistortion=v; if _G.GH_TTS_DIST then pcall(function() _G.GH_TTS_DIST.Bypass=not v end) end end,pgTTS)
+	Header("FX Presets",pgTTS)
+	Btn("🤖 Robot",function() Cfg.TTSPitch=-5; if _G.GH_TTS_PITCH then pcall(function() _G.GH_TTS_PITCH.Pitch=math.clamp(2^(-5/12),0.5,2) end) end; if _G.GH_TTS_DIST then pcall(function() _G.GH_TTS_DIST.Level=0.35; _G.GH_TTS_DIST.Bypass=false end) end end,pgTTS)
+	Btn("👻 Ghost",function() Cfg.TTSPitch=6; if _G.GH_TTS_PITCH then pcall(function() _G.GH_TTS_PITCH.Pitch=math.clamp(2^(6/12),0.5,2) end) end; if _G.GH_TTS_REVERB then pcall(function() _G.GH_TTS_REVERB.DecayTime=8; _G.GH_TTS_REVERB.WetLevel=0.7; _G.GH_TTS_REVERB.Bypass=false end) end end,pgTTS)
+	Btn("😈 Demon",function() Cfg.TTSPitch=-10; if _G.GH_TTS_PITCH then pcall(function() _G.GH_TTS_PITCH.Pitch=math.clamp(2^(-10/12),0.5,2) end) end; if _G.GH_TTS_REVERB then pcall(function() _G.GH_TTS_REVERB.DecayTime=4; _G.GH_TTS_REVERB.Bypass=false end) end; if _G.GH_TTS_DIST then pcall(function() _G.GH_TTS_DIST.Level=0.5; _G.GH_TTS_DIST.Bypass=false end) end end,pgTTS)
+	Btn("🧹 Clear FX",function() Cfg.TTSPitch=0; Cfg.TTSRate=1; if _G.GH_TTS_PITCH then pcall(function() _G.GH_TTS_PITCH.Pitch=1 end) end; if _G.GH_TTS_REVERB then pcall(function() _G.GH_TTS_REVERB.Bypass=true end) end; if _G.GH_TTS_DIST then pcall(function() _G.GH_TTS_DIST.Bypass=true end) end end,pgTTS)
+	Header("Test",pgTTS)
+	local _,testBox=TextInput("Type to speak...",pgTTS,function() end)
+	Btn("▶ Speak Text",function() if not _G.GH_TTS then return end; local msg=(testBox and testBox.Text~="") and testBox.Text or "Hello World"; pcall(function() _G.GH_TTS.Text=msg; _G.GH_TTS.TimePosition=0; _G.GH_TTS:Play() end) end,pgTTS)
+	Btn("⏹ Stop Speaking",function() if _G.GH_TTS then pcall(function() _G.GH_TTS:Stop() end) end end,pgTTS)
+end
+
+-- ── LAUNCHER ──────────────────────────────────────────────────────────
+local pgLauncher=NewPage("Launcher"); NavBtn("LAUNCHER","Launcher")
+Header("Launch Yourself",pgLauncher)
+local launchPower=150; local launchAngle=45; local launchMode="Forward"
+local modeBtns={}
+for _,mode in ipairs({"Forward","Up","Camera","Custom"}) do
+	local mb=Btn(mode,function() launchMode=mode; for k,b in pairs(modeBtns) do b.BackgroundColor3=(k==mode) and Color3.fromRGB(40,80,200) or Color3.fromRGB(22,22,28) end end,pgLauncher)
+	modeBtns[mode]=mb
+end
+modeBtns["Forward"].BackgroundColor3=Color3.fromRGB(40,80,200)
+Slider("Launch Power",10,800,150,function(v) launchPower=v end,pgLauncher,true)
+Slider("Upward Angle",0,90,45,function(v) launchAngle=v end,pgLauncher,true)
+Header("Custom Direction",pgLauncher)
+local customDir=Vector3.new(0,1,0)
+local _,cdxBox=TextInput("X  (e.g. 0)",pgLauncher,function(v) customDir=Vector3.new(tonumber(v) or customDir.X,customDir.Y,customDir.Z) end)
+local _,cdyBox=TextInput("Y  (e.g. 1)",pgLauncher,function(v) customDir=Vector3.new(customDir.X,tonumber(v) or customDir.Y,customDir.Z) end)
+local _,cdzBox=TextInput("Z  (e.g. 0)",pgLauncher,function(v) customDir=Vector3.
