@@ -1998,8 +1998,6 @@ _G.GH_AmbientEffects           = AmbientEffects
 
 print("[GH S2] Systems loaded — run S3 next")
 
-text
-
 --[[
 ╔══════════════════════════════════════════════════════════════════════════╗
 ║         GHOST HUB TITAN — DEFINITIVE EDITION (v33.0)                    ║
